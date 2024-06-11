@@ -40,6 +40,7 @@ def bcast_and_slice(data, dp=False):
     if dp:
         torch.distributed.broadcast(data, src=0, group=torch.distributed.distributed_c10d._get_default_group())
         data_size_per_rank = data.shape[0] // torch.distributed.get_world_size()
+        assert data_size_per_rank > 0, "expect at least one batch size per rank: {}".format(data_size_per_rank)
         rank = torch.distributed.get_rank()
         start_index = rank * data_size_per_rank
         end_index = (rank + 1) * data_size_per_rank
