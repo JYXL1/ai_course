@@ -37,6 +37,7 @@ def is_last_rank():
 
 
 def bcast_and_slice(data, dp=False):
+    """数据并行模型, rank0将数据分发给其它worker, 每个worker对自己负责部分数据进行训练"""
     if dp:
         torch.distributed.broadcast(data, src=0, group=torch.distributed.distributed_c10d._get_default_group())
         data_size_per_rank = data.shape[0] // torch.distributed.get_world_size()

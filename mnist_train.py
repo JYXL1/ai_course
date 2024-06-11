@@ -33,8 +33,8 @@ def train(model_path=None, model_name="DNN", dp=False):
         model.train()
         for images, labels in train_loader:
             opt.zero_grad()
-            # 前向计算损失
             data = bcast_and_slice(images.cuda().reshape(labels.shape[0], -1), dp)
+            # 前向计算损失
             out = model(data)
             loss = loss_func(out, F.one_hot(bcast_and_slice(labels.cuda(), dp), 10).float())
             # 反向计算梯度
