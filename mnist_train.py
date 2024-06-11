@@ -1,12 +1,11 @@
 import argparse
-import torch.nn.functional as F
 
-from model import MnistNN
+from model import *
 from dataloader import get_dataloader
 from dp_util import *
 
 
-def train(model_path=None, dp=False):
+def train(model_path=None, model_name="DNN", dp=False):
     if dp:
         # 数据并行模式建立通信域
         init_group()
@@ -19,7 +18,10 @@ def train(model_path=None, dp=False):
     if not dp or (dp and is_first_rank()):
         print("train data size: {}, test data size: {}".format(len(train_loader.dataset), len(test_loader.dataset)), flush=True)
     # 初始化模型
-    model = MnistNN().cuda()
+    if model_name == "LeNet5":
+        model = LeNet5().cuda()
+    else:
+        model = MnistNN().cuda()
     # 设置优化器
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     # 定义损失函数
@@ -65,7 +67,8 @@ if __name__ == '__main__':
     # 单机数据并行训练指令: torchrun --standalone --nproc_per_node ${DP_SIZE} mnist_train.py --save-path ${MODEL_PATH} --dp
     parser = argparse.ArgumentParser()
     parser.add_argument("--save-path", type=str, default=None, help="模型持久化路径")
+    parser.add_argument("--model-name", choices=("DNN", "LeNet5"), default="DNN", help="模型类型: DNN/LeNet5")
     parser.add_argument("--dp", action="store_true", help="使用数据并行模式")
     args = parser.parse_args()
 
-    train(args.save_path, args.dp)
+    train(args.save_path, args.model_name, args.dp)

@@ -1,9 +1,8 @@
 import random
 import os
 import argparse
-import torch
 
-from model import MnistNN
+from model import *
 from dataloader import get_dataset
 
 
@@ -19,7 +18,7 @@ def show_image(image, save_path=None):
     plt.show()
 
 
-def predict(model_path=None, figure_path=None):
+def predict(model_path=None, model_name="DNN", figure_path=None):
     # 加载推理数据
     test_dataset = get_dataset(False)
     sample_id = random.randint(0, len(test_dataset))
@@ -27,7 +26,10 @@ def predict(model_path=None, figure_path=None):
 
     # 加载模型
     assert os.path.isfile(model_path), "no model can find, please check your model path: <{}>".format(model_path)
-    model = MnistNN().load_weights(torch.load(model_path)).cuda()
+    if model_name == "LeNet5":
+        model = LeNet5().load_weights(torch.load(model_path)).cuda()
+    else:
+        model = MnistNN().load_weights(torch.load(model_path)).cuda()
 
     # 推理
     predict_label = torch.argmax(model(image.cuda().reshape(image.shape[0], -1)), dim=1)
@@ -43,6 +45,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--save-path", type=str, default=None, help="模型持久化路径")
     parser.add_argument("--figure-path", type=str, default=None, help="预测数据存储路径")
+    parser.add_argument("--model-name", choices=("DNN", "LeNet5"), default="DNN", help="模型类型: DNN/LeNet5")
     args = parser.parse_args()
 
-    predict(args.save_path, args.figure_path)
+    predict(args.save_path, args.model_name, args.figure_path)
